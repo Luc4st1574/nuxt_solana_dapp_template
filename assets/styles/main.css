@@ -1,0 +1,59 @@
+/* Global styles */
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e2e; /* Dark gray with bluish tone */
+    color: #f4f4f6; /* Off-white text */
+  }
+  
+  /* Center alignment for the main container */
+  .center-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full screen height */
+    background-color: #1e1e2e; /* Dark gray background */
+    text-align: center;
+  }
+  
+  /* Button styles */
+  .button {
+    background-color: #4c51bf; /* Vue.js Indigo */
+    color: #ffffff; /* White text */
+    font-weight: bold;
+    font-size: 1.25rem; /* Large font size */
+    padding: 16px 32px; /* Large padding */
+    border-radius: 9999px; /* Fully rounded button */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    transition: transform 0.3s ease, background-color 0.3s ease; /* Smooth transitions */
+    text-transform: uppercase;
+  }
+  
+  .button:hover {
+    background-color: #5b62da; /* Slightly lighter Indigo */
+    transform: scale(1.05); /* Slight zoom on hover */
+  }
+  
+  /* Connected content styles */
+  .connected-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .welcome-message {
+    font-size: 2rem; /* Larger font size */
+    font-weight: 700; /* Bold text */
+    margin-bottom: 16px; /* Space below the welcome message */
+    color: #ffffff; /* White text */
+  }
+  
+  .wallet-address {
+    font-size: 1.5rem; /* Slightly smaller than the welcome message */
+    font-weight: 600; /* Semi-bold text */
+    color: #d6bcfa; /* Light purple text for the wallet address */
+  }
+  
