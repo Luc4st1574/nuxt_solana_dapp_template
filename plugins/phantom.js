@@ -1,3 +1,5 @@
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+
 export default defineNuxtPlugin(() => {
   if (import.meta.server) return; // Ensure the plugin runs only on the client side
 
@@ -13,9 +15,13 @@ export default defineNuxtPlugin(() => {
     }
   }
 
+  // Provide the Phantom wallet and Solana connection
+  const connection = new Connection(clusterApiUrl('devnet'), 'confirmed'); // Using Solana Devnet
+
   return {
     provide: {
       phantom: getPhantomWallet(),
+      solanaConnection: connection,
     },
   };
 });

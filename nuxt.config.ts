@@ -6,8 +6,21 @@ export default defineNuxtConfig({
     },
   },
 
-  // Optional if using global styles
+  // Global styles
   css: ['@/assets/styles/main.css'],
 
-  compatibilityDate: '2025-02-06'
-})
+  // Compatibility date
+  compatibilityDate: '2025-02-06',
+
+  // Vite configuration for buffer polyfill
+  vite: {
+    define: {
+      'process.env': {}, // Polyfill for process.env in browser
+    },
+    resolve: {
+      alias: {
+        buffer: 'buffer', // Polyfill for Buffer
+      },
+    },
+  },
+});

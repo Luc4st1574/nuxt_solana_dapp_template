@@ -12,10 +12,12 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
     height: 100vh; /* Full screen height */
     background-color: #1e1e2e; /* Dark gray background */
     text-align: center;
   }
+  
   
   /* Button styles */
   .button {
@@ -26,13 +28,21 @@ body {
     padding: 16px 32px; /* Large padding */
     border-radius: 9999px; /* Fully rounded button */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    margin-top: 16px; /* Add space between buttons */
     transition: transform 0.3s ease, background-color 0.3s ease; /* Smooth transitions */
     text-transform: uppercase;
+    cursor: pointer;
   }
   
   .button:hover {
     background-color: #5b62da; /* Slightly lighter Indigo */
     transform: scale(1.05); /* Slight zoom on hover */
+  }
+
+  .button:disabled {
+    background-color: #aaa; /* Disabled button color */
+    cursor: not-allowed;
+    transform: none; /* Disable hover effect */
   }
   
   /* Connected content styles */
