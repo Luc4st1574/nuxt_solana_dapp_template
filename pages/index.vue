@@ -1,18 +1,21 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useNuxtApp } from '#app'
+import { useNuxtApp, useRouter } from '#app'
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js'
 
 // Reactive state variables
 const phantom = ref(null)
 const publicWalletAddress = ref('')
 const isSending = ref(false)
-const sessionData = ref(null) 
+// Remove sessionData from here if you plan to display it on another page
+// const sessionData = ref(null)
 const transactionSignature = ref('') // Store transaction signature
 
 // Receiver wallet and payment amount (matches Go backend)
 const receiverWalletAddress = 'D7LwfYCjLLCaeLTTijwBagFAmB3aPSm2Fx8K2DzvqLrz'
 const paymentAmount = 1.0  // Ensure it's a float
+
+const router = useRouter()
 
 onMounted(async () => {
   const { $phantom } = useNuxtApp()
@@ -69,8 +72,11 @@ async function sendPayment() {
     
     alert(`Payment of ${paymentAmount} SOL sent successfully! Transaction: ${signature}`)
     
-    // Call backend verification after successful transaction
-    await verifyPaymentOnBackend(signature)
+    // Add a delay (60 seconds) before verifying payment on the backend
+    setTimeout(async () => {
+      await verifyPaymentOnBackend(signature)
+    }, 60000) // 60000 ms = 60 seconds
+
   } catch (error) {
     console.error('Payment failed:', error)
     alert('Payment failed. Please try again.')
@@ -85,7 +91,11 @@ async function verifyPaymentOnBackend(signature) {
     const payload = {
       senderWallet: publicWalletAddress.value,
       expectedAmount: paymentAmount, // Send as float
+      transactionHash: signature,
     }
+    
+    // Log the payload being sent to the server.
+    console.log("Payload being sent to the server:", payload);
 
     const response = await fetch('http://localhost:8080/verify-payment', {
       method: 'POST',
@@ -101,8 +111,11 @@ async function verifyPaymentOnBackend(signature) {
 
     const data = await response.json()
     console.log("Payment verified successfully! Session data:", data)
-    sessionData.value = data // Store session data for display
-
+    // Save the session data (for example, to localStorage)
+    localStorage.setItem('sessionData', JSON.stringify(data))
+    // Redirect to a new page (e.g., /dashboard)
+    router.push('/dashboard')
+    
   } catch (error) {
     console.error('Backend verification failed:', error)
     alert('Payment verification failed on the server.')
@@ -112,17 +125,13 @@ async function verifyPaymentOnBackend(signature) {
 
 <template>
   <div class="center-container">
-    <div v-if="sessionData" class="session-info">
-      <p>Welcome to our service!</p>
-      <p>Session ID: {{ sessionData.gameHashID }}</p>
-      <p>Expires: {{ new Date(sessionData.expirationDate).toLocaleString() }}</p>
+    <div v-if="!publicWalletAddress">
+      <button @click="connectPhantom" class="button">
+        Connect to Phantom Wallet
+      </button>
     </div>
 
-    <button v-if="phantom && !publicWalletAddress" @click="connectPhantom" class="button">
-      Connect to Phantom Wallet
-    </button>
-
-    <div v-if="publicWalletAddress" class="connected-content">
+    <div v-if="publicWalletAddress">
       <p class="welcome-message">Welcome to the Solana network</p>
       <p class="wallet-address"><strong>{{ publicWalletAddress }}</strong></p>
       <button @click="sendPayment" class="button" :disabled="isSending">
