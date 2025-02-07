@@ -17,15 +17,15 @@ export default defineNuxtConfig({
   // Compatibility date
   compatibilityDate: '2025-02-06',
 
-  // Register the Buffer polyfill plugin for client side
+  // Register the combined plugin for client-side only
   plugins: [
-    { src: '~/plugins/buffer.client.js', mode: 'client' }
+    { src: '~/plugins/solana.client.js', mode: 'client' }
   ],
 
-  // Vite configuration for buffer polyfill
+  // Vite configuration for buffer polyfill and global aliasing
   vite: {
     define: {
-      'process.env': {}, // Polyfill for process.env in browser
+      'process.env': {}, // Polyfill for process.env in the browser
       global: 'window'   // Map global to window for browser compatibility
     },
     resolve: {

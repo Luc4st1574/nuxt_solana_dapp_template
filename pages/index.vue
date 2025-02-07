@@ -3,10 +3,9 @@ import { ref, onMounted } from 'vue'
 import { useNuxtApp } from '#app'
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js'
 
-// Removed the following line because the global Buffer will be set via our plugin:
-// import { Buffer } from 'buffer'
+// Note: No need to import Buffer here because it is polyfilled via the Nuxt plugin
 
-// Reactive references for wallet connection and payment status
+// Reactive references for wallet connection and payment state
 const phantom = ref(null)
 const publicWalletAddress = ref('')
 const isSending = ref(false)
@@ -15,13 +14,13 @@ const isSending = ref(false)
 const receiverWalletAddress = 'D7LwfYCjLLCaeLTTijwBagFAmB3aPSm2Fx8K2DzvqLrz'
 const paymentAmount = 1
 
-// On component mount, retrieve the Phantom wallet from Nuxt’s app context
+// On component mount, retrieve the Phantom wallet instance from Nuxt's app context
 onMounted(async () => {
   const { $phantom } = useNuxtApp()
   phantom.value = await $phantom
 })
 
-// Function to connect to Phantom Wallet
+// Function to connect to the Phantom Wallet
 async function connectPhantom() {
   if (!phantom.value) {
     alert('Phantom Wallet is not available. Please install it from https://phantom.app/')
@@ -46,7 +45,10 @@ async function sendPayment() {
 
   try {
     isSending.value = true
-    const { solanaConnection } = useNuxtApp()
+
+    // Access the solanaConnection from the Nuxt app context with the dollar sign prefix
+    const { $solanaConnection } = useNuxtApp()
+
     const senderPublicKey = new PublicKey(publicWalletAddress.value)
     const receiverPublicKey = new PublicKey(receiverWalletAddress)
 
@@ -61,13 +63,13 @@ async function sendPayment() {
 
     // Set fee payer and fetch a recent blockhash for the transaction
     transaction.feePayer = senderPublicKey
-    const { blockhash } = await solanaConnection.getRecentBlockhash()
+    const { blockhash } = await $solanaConnection.getRecentBlockhash()
     transaction.recentBlockhash = blockhash
 
     // Request Phantom to sign the transaction
     const signedTransaction = await phantom.value.signTransaction(transaction)
-    const signature = await solanaConnection.sendRawTransaction(signedTransaction.serialize())
-    await solanaConnection.confirmTransaction(signature, 'confirmed')
+    const signature = await $solanaConnection.sendRawTransaction(signedTransaction.serialize())
+    await $solanaConnection.confirmTransaction(signature, 'confirmed')
 
     alert(`Payment of ${paymentAmount} SOL sent successfully! Transaction Signature: ${signature}`)
     console.log(`Transaction Signature: ${signature}`)
@@ -91,7 +93,7 @@ async function sendPayment() {
       Connect to Phantom Wallet
     </button>
 
-    <!-- Display Wallet Address and Payment Button -->
+    <!-- Display Wallet Address and Send Payment Button -->
     <div v-if="publicWalletAddress" class="connected-content">
       <p class="welcome-message">
         Welcome to the Solana network
