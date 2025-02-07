@@ -85,7 +85,6 @@ async function verifyPaymentOnBackend(signature) {
     const payload = {
       senderWallet: publicWalletAddress.value,
       expectedAmount: paymentAmount, // Send as float
-      txSignature: signature // Include transaction signature
     }
 
     const response = await fetch('http://localhost:8080/verify-payment', {
