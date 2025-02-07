@@ -3,14 +3,12 @@ import { ref, onMounted } from 'vue'
 import { useNuxtApp } from '#app'
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js'
 
-// Note: No need to import Buffer here because it is polyfilled via the Nuxt plugin
-
 // Reactive references for wallet connection and payment state
 const phantom = ref(null)
 const publicWalletAddress = ref('')
 const isSending = ref(false)
 
-// Predefined receiver wallet and payment amount (1 SOL)
+// Predefined receiver wallet (must match the Go config) and payment amount (1 SOL)
 const receiverWalletAddress = 'D7LwfYCjLLCaeLTTijwBagFAmB3aPSm2Fx8K2DzvqLrz'
 const paymentAmount = 1
 
@@ -26,11 +24,10 @@ async function connectPhantom() {
     alert('Phantom Wallet is not available. Please install it from https://phantom.app/')
     return
   }
-
   try {
     const response = await phantom.value.connect({ onlyIfTrusted: false })
     publicWalletAddress.value = response.publicKey.toString()
-    console.log('Connected with Public Key:', response.publicKey.toString())
+    console.log('Connected with Public Key:', publicWalletAddress.value)
   } catch (error) {
     console.error('Failed to connect Phantom Wallet:', error)
   }
@@ -42,42 +39,78 @@ async function sendPayment() {
     alert('Please connect your Phantom Wallet first!')
     return
   }
-
   try {
     isSending.value = true
 
-    // Access the solanaConnection from the Nuxt app context with the dollar sign prefix
+    // Access the solanaConnection from the Nuxt app context.
     const { $solanaConnection } = useNuxtApp()
 
     const senderPublicKey = new PublicKey(publicWalletAddress.value)
     const receiverPublicKey = new PublicKey(receiverWalletAddress)
 
-    // Create a transaction with a transfer instruction
+    // Create a transaction with a transfer instruction.
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: senderPublicKey,
         toPubkey: receiverPublicKey,
-        lamports: paymentAmount * 1e9, // Convert SOL to lamports (1 SOL = 10^9 lamports)
+        lamports: paymentAmount * 1e9, // Convert SOL to lamports.
       })
     )
 
-    // Set fee payer and fetch a recent blockhash for the transaction
+    // Set fee payer and fetch a recent blockhash for the transaction.
     transaction.feePayer = senderPublicKey
     const { blockhash } = await $solanaConnection.getRecentBlockhash()
     transaction.recentBlockhash = blockhash
 
-    // Request Phantom to sign the transaction
+    // Request Phantom to sign the transaction.
     const signedTransaction = await phantom.value.signTransaction(transaction)
     const signature = await $solanaConnection.sendRawTransaction(signedTransaction.serialize())
     await $solanaConnection.confirmTransaction(signature, 'confirmed')
 
-    alert(`Payment of ${paymentAmount} SOL sent successfully! Transaction Signature: ${signature}`)
+    alert(`Payment of ${paymentAmount} SOL sent successfully!
+Transaction Signature: ${signature}`)
     console.log(`Transaction Signature: ${signature}`)
+
+    // After the transaction is confirmed on-chain,
+    // call the Go backend to verify the payment.
+    await verifyPaymentOnBackend()
+
   } catch (error) {
     console.error('Payment failed:', error)
     alert('Payment failed. Please try again.')
   } finally {
     isSending.value = false
+  }
+}
+
+// Function to call the backend verification endpoint.
+async function verifyPaymentOnBackend() {
+  try {
+    // Prepare the payload with the sender's wallet address and expected amount.
+    const payload = {
+      senderWallet: publicWalletAddress.value,
+      expectedAmount: paymentAmount
+    }
+    // Replace the URL below with your backend’s URL (e.g., if running locally, http://localhost:8080/verify-payment).
+    const response = await fetch('http://localhost:8080/verify-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      // Include credentials if your backend and front end are on different domains/ports.
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    })
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Verification failed')
+    }
+    const data = await response.json()
+    console.log("Payment verified successfully! Session data:", data)
+    // Optionally, redirect or update the UI to show the "access granted" page.
+  } catch (error) {
+    console.error('Backend verification failed:', error)
+    alert('Payment verification failed on the server.')
   }
 }
 </script>
