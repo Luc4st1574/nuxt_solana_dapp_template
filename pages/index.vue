@@ -72,10 +72,10 @@ async function sendPayment() {
     
     alert(`Payment of ${paymentAmount} SOL sent successfully! Transaction: ${signature}`)
     
-    // Add a delay (60 seconds) before verifying payment on the backend
+    // Add a delay (10 seconds) before verifying payment on the backend
     setTimeout(async () => {
       await verifyPaymentOnBackend(signature)
-    }, 60000) // 60000 ms = 60 seconds
+    }, 10000)
 
   } catch (error) {
     console.error('Payment failed:', error)
